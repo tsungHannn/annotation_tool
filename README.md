@@ -2,6 +2,14 @@
 調整 BEVHeight 檢測出來的物件框。
 標記框格式：kitti
 
+## How to run
+需要載 PyQt5 及 OpenCV
+```
+pip install PyQt5
+pip install opencv-python
+```
+然後直接用 VS Code 執行 annotation.py 應該就會有視窗了
+
 ## 使用說明
 執行後如下圖
 ![image](https://github.com/user-attachments/assets/42f8bbc4-5e34-4c48-aa78-48d911ee5de3)
