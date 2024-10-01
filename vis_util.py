@@ -69,7 +69,7 @@ def draw_box_3d(image, corners, c=(0, 255, 0)):
   return image
 
 # 修改成不是讀檔案畫標記，而是讀label_list
-def draw_3d_box_on_image(image, label_list, P2, denorm, c=(0, 255, 0)):
+def draw_3d_box_on_image(image, label_list, P2, denorm, c=(0, 255, 0), index=0):
 
     color_map = {"Car":(0, 255, 0), "Bus":(0, 255, 255), "Pedestrian":(255, 255, 0), "Cyclist":(0, 0, 255)}
 
@@ -86,7 +86,7 @@ def draw_3d_box_on_image(image, label_list, P2, denorm, c=(0, 255, 0)):
     #       box_2d = project_to_image(box_3d, P2)
     #       image = draw_box_3d(image, box_2d, c=color_map[object_type])
     # return image
-
+    temp = 0
     for obj in label_list:
         # obj: Class, Height, Width, Length, x, y, z, rotation
         object_type = obj[0]
@@ -95,7 +95,11 @@ def draw_3d_box_on_image(image, label_list, P2, denorm, c=(0, 255, 0)):
         rotation_y = float(obj[7])
         box_3d = compute_box_3d_camera(dim, location, rotation_y, denorm)
         box_2d = project_to_image(box_3d, P2)
-        image = draw_box_3d(image, box_2d, c=color_map[object_type])
+        if temp == index:
+            image = draw_box_3d(image, box_2d, c=(255, 0, 0))
+        else:
+            image = draw_box_3d(image, box_2d, c=color_map[object_type])
+        temp += 1
     return image
 
 

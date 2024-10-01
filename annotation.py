@@ -69,6 +69,8 @@ class ImageViewerApp(QWidget):
         self.label_table.setRowCount(2)
         self.label_table.setHorizontalHeaderLabels(['Class', 'Height', 'Width', 'Length', 'x', 'y', 'z', 'Rotation'])
         self.label_table.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Expanding)
+        self.label_table.cellClicked.connect(self.display_image)
+        
 
         # 增加、減少按鈕
         self.increase_btn = QPushButton("+")
@@ -134,7 +136,7 @@ class ImageViewerApp(QWidget):
         self.image_list = None
         self.annotation_folder = None
         self.current_image_path = None
-        self.current_index = 0
+        self.current_img_index = 0
 
         # show picture setting
         self.denorm = None
@@ -190,7 +192,7 @@ class ImageViewerApp(QWidget):
             for image in images:
                 self.image_qtlist.addItem(image)
         
-        self.image_qtlist.setCurrentRow(self.current_index)
+        self.image_qtlist.setCurrentRow(self.current_img_index)
         self.select_image(self.image_qtlist.currentItem())
     
 
@@ -244,28 +246,28 @@ class ImageViewerApp(QWidget):
     def set_current_index(self, item):
         for i in range(len(self.image_list)):
             if item.text() == self.image_list[i]:
-                self.current_index = i
+                self.current_img_index = i
                 break
         
-        self.image_qtlist.setCurrentRow(self.current_index)
+        self.image_qtlist.setCurrentRow(self.current_img_index)
         self.select_image(self.image_qtlist.currentItem())
         
 
 
     def next_image(self):
-        if self.current_index == len(self.image_list) - 1:
+        if self.current_img_index == len(self.image_list) - 1:
             pass # do nothing
         else:
-            self.current_index += 1
-            self.image_qtlist.setCurrentRow(self.current_index)
+            self.current_img_index += 1
+            self.image_qtlist.setCurrentRow(self.current_img_index)
             self.select_image(self.image_qtlist.currentItem())
     
     def previous_image(self):
-        if self.current_index == 0:
+        if self.current_img_index == 0:
             pass # do nothing
         else:
-            self.current_index -= 1
-            self.image_qtlist.setCurrentRow(self.current_index)
+            self.current_img_index -= 1
+            self.image_qtlist.setCurrentRow(self.current_img_index)
             self.select_image(self.image_qtlist.currentItem())
     
     # 把顯示的表格儲存到self.label_table
@@ -343,7 +345,7 @@ class ImageViewerApp(QWidget):
     # 讀取原始圖片後，劃上標記
     def display_image(self):
         image = cv2.imread(self.current_image_path)
-        image = draw_3d_box_on_image(image, self.label_list, self.calilb, self.denorm) # return a opencv image
+        image = draw_3d_box_on_image(image, self.label_list, self.calilb, self.denorm, index=self.label_table.currentRow()) # return a opencv image
 
         height, width, channel = image.shape
         bytesPerline = channel * width
