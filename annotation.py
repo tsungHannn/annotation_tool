@@ -175,8 +175,8 @@ class ImageViewerApp(QWidget):
         folder = QFileDialog.getExistingDirectory(self, "選擇圖片資料夾")
         if folder:
             self.data_root = folder
-            self.annotation_folder = os.path.join(folder, "det_text")
-            self.image_folder = os.path.join(folder, "original_png")
+            self.annotation_folder = os.path.join(folder, "label")
+            self.image_folder = os.path.join(folder, "image")
             self.load_images_from_folder()
             self.data_root_label.setText(self.image_folder)
 
@@ -329,7 +329,7 @@ class ImageViewerApp(QWidget):
         
         file_prefix = item.text()[:-4]
         calib_path = os.path.join(self.data_root, "calib.txt")
-        label_path = os.path.join(self.data_root, "det_txt")
+        label_path = os.path.join(self.data_root, "label")
         denorm_path = os.path.join(self.data_root, "denorm.txt")
 
 
