@@ -15,39 +15,30 @@ pip install opencv-python
 ![image](https://github.com/user-attachments/assets/42f8bbc4-5e34-4c48-aa78-48d911ee5de3)
 - 先按 "打開資料夾" 讀取圖片與標注，資料夾的格式如下。(直接選cal6)
 ```
-├── cal6
-│   ├── calib.txt
-│   ├── denorm.txt
-│   ├── det_txt
-│   │   ├── cal6_000000.txt
-│   │   ├── cal6_000001.txt
-│   │   ├── cal6_000002.txt
-│   │   ├── cal6_000003.txt
-│   │   ├── cal6_000004.txt
-│   │   ├── cal6_000005.txt
-|   |   |   ...
-│   ├── det_png
-│   │   ├── cal6_000000.jpg
-│   │   ├── cal6_000001.jpg
-│   │   ├── cal6_000002.jpg
-│   │   ├── cal6_000003.jpg
-│   │   ├── cal6_000004.jpg
-│   │   ├── cal6_000005.jpg
-│   └── original_png
-│       ├── cal6_000000.jpg
-│       ├── cal6_000001.jpg
-│       ├── cal6_000002.jpg
-│       ├── cal6_000003.jpg
-│       ├── cal6_000004.jpg
-│       ├── cal6_000005.jpg
+
+├── adjusting
+|   ├── calib.txt
+|   ├── denorm.txt
+|   ├── image
+|   │   ├── 6_obj_000001.png
+|   │   ├── 6_obj_000002.png
+|   │   ├── 6_obj_000003.png
+|   │   ├── 6_obj_000004.png
+|   │   ├── 6_obj_000005.png
+|   |   | ...
+|   ├── label
+|   │   ├── 6_obj_000001.txt
+│   |   ├── 6_obj_000002.txt
+|   │   ├── 6_obj_000003.txt
+│   |   ├── 6_obj_000004.txt
+|   │   ├── 6_obj_000005.txt
 
 ```
-- cal6：資料夾本人
+- adjusting：資料夾本人
 - calib.txt：相機內參，只包含一個P2矩陣
 - denorm.txt：相機座標中的道路平面方程式(用外參算的)
-- det_png：原始的標注產生的圖片
-- det_txt：標注資料
-- original_png：原始沒有標注的圖片。
+- label：標注資料
+- image：原始沒有標注的圖片。
 讀取正確會到以下畫面
 ![image](https://github.com/user-attachments/assets/62daab53-dc25-43b4-849b-b31849c432df)
 
