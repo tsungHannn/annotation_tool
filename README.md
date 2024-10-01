@@ -50,3 +50,12 @@ pip install opencv-python
 - +、-：調整選定的欄位，每按一次就是把框框內的數值+/-一個offset
 - 新增標注：新增一個Row，欄位內的值是選定的Row。Ex:如果選擇上面範例圖的第二行，[Car, 1.4867, 1.6319...]的任意一欄，就會新增一欄一模一樣的數值在最底下。
 - 刪除標注：刪除所選的Row。
+
+## 製作adjusting
+1. Bag轉換成pcd跟png
+2. 把calib.txt跟denorm.txt放進scene
+3. scenes2rope.py 把scene轉換成rope3d，並產生空的標注資料
+4. 用rope3kitti.py轉換成kitti。**注意** 目前的標注資料都是空的
+5. 用BEVHeight產生標注資料(kitti格式)，用產生的標注資料替換掉原有的空標注資料
+6. 用kitti2rope_label.py把產生的標注資料轉換成Rope3D格式
+7. kitti2adjusting.py把kitti的標注資料+圖片換成adjusting格式 **adjusting格式：Rope3D的檔名+kitti的標注格式**
