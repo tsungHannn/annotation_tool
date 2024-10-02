@@ -184,6 +184,8 @@ class ImageViewerApp(QWidget):
         QShortcut(QKeySequence("P"), self, self.previous_image)
         QShortcut(QKeySequence("A"), self, self.add_label)
         QShortcut(QKeySequence("D"), self, self.delete_label)
+        QShortcut(QKeySequence("+"), self, self.increase_value)
+        QShortcut(QKeySequence("-"), self, self.decrease_value)
         # QShortcut(QKeySequence("Up"), self, self.increase_value)
         # QShortcut(QKeySequence("Down"), self, self.decrease_value)
 
@@ -411,6 +413,9 @@ class ImageViewerApp(QWidget):
         
     # 讀取原始圖片後，劃上標記
     def display_image(self):
+        if self.current_image_path == None:
+            return
+        
         image = cv2.imread(self.current_image_path)
         image = draw_3d_box_on_image(image, self.label_list, self.calib, self.denorm, index=self.label_table.currentRow()) # return a opencv image
 
