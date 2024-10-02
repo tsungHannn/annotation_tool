@@ -2,9 +2,9 @@ import sys
 import os
 from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QPushButton, QListWidget, QFileDialog, QLabel
 from PyQt5.QtWidgets import QTableWidget, QHBoxLayout, QTableWidgetItem, QLineEdit, QSizePolicy
-from PyQt5.QtWidgets import QSpacerItem, QHeaderView, QAction
+from PyQt5.QtWidgets import QSpacerItem, QHeaderView, QAction, QCheckBox, QShortcut
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QPixmap, QImage, QFont
+from PyQt5.QtGui import QPixmap, QImage, QFont, QKeySequence
 from PyQt5.QtWidgets import QMessageBox
 from  vis_util import *
 
@@ -31,7 +31,7 @@ class ImageViewerApp(QWidget):
         control_button_layout = QVBoxLayout()
 
         # 建立界面元素
-        self.open_folder_btn = QPushButton("打開資料夾")
+        self.open_folder_btn = QPushButton("打開資料夾(O)")
         self.open_folder_btn.clicked.connect(self.open_folder)
         self.open_folder_btn.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Expanding)
 
@@ -47,10 +47,10 @@ class ImageViewerApp(QWidget):
         # self.image_label.setFixedSize(640, 480)  # 設定圖片顯示區域大小
         self.image_label.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Expanding)
 
-        self.restore_button = QPushButton("恢復預設")
+        self.restore_button = QPushButton("恢復預設(R)")
         self.restore_button.clicked.connect(self.restore_label)
         self.restore_button.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Expanding)
-        self.save_file_btn = QPushButton("儲存標注")
+        self.save_file_btn = QPushButton("儲存標注(S)")
         self.save_file_btn.clicked.connect(self.save_label)
         self.save_file_btn.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Expanding)
 
@@ -60,19 +60,44 @@ class ImageViewerApp(QWidget):
         self.input_offset = QLineEdit()
         self.input_offset.textChanged.connect(self.change_offset)
 
+
+        self.dynamic_copy = QCheckBox()
+        self.dynamic_copy.setText("剪貼簿，新增標註會新增這裡的值\n(勾選則點擊表格會複製到這裡，不勾選這裡的值就不會改變)")
+        self.dynamic_copy.setChecked(True)
+        # 有時候整張圖都沒有標註框，可以把別張圖的標註框存在這，複製過去
+        self.copy_label = QTableWidget()
+        self.copy_label.setColumnCount(8)
+        self.copy_label.setRowCount(1)
+        self.copy_label.setHorizontalHeaderLabels(['Class', 'Height', 'Width', 'Length', 'x', 'y', 'z', 'Rotation'])
+        # 預設值
+        self.copy_label.setItem(0, 0, QTableWidgetItem("Car"))
+        self.copy_label.setItem(0, 1, QTableWidgetItem("1.8879"))
+        self.copy_label.setItem(0, 2, QTableWidgetItem("1.6321"))
+        self.copy_label.setItem(0, 3, QTableWidgetItem("5.0728"))
+        self.copy_label.setItem(0, 4, QTableWidgetItem("4.4402"))
+        self.copy_label.setItem(0, 5, QTableWidgetItem("3.059"))
+        self.copy_label.setItem(0, 6, QTableWidgetItem("38.789"))
+        self.copy_label.setItem(0, 7, QTableWidgetItem("1.3973"))
+        self.copy_label.resizeColumnsToContents()
+        self.copy_label.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Expanding)
+
+
         self.offset_layout.addWidget(self.show_offset)
         self.offset_layout.addWidget(self.input_offset)
-        # self.offset_layout.addStretch(1)
+
+        
         
         
 
         # 表格設置
         self.label_table = QTableWidget()
         self.label_table.setColumnCount(8)
-        self.label_table.setRowCount(2)
+        # self.label_table.setRowCount(2)
         self.label_table.setHorizontalHeaderLabels(['Class', 'Height', 'Width', 'Length', 'x', 'y', 'z', 'Rotation'])
         self.label_table.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Expanding)
-        self.label_table.cellClicked.connect(self.display_image)
+        # self.label_table.cellClicked.connect(self.display_image)
+        self.label_table.currentCellChanged.connect(self.display_image)
+
         
 
         # 增加、減少按鈕
@@ -87,20 +112,20 @@ class ImageViewerApp(QWidget):
 
 
         # 新增、刪除標注
-        self.add_label_button = QPushButton("新增標注")
+        self.add_label_button = QPushButton("新增標注(A)")
         self.add_label_button.clicked.connect(self.add_label)
         self.add_label_button.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Expanding)
 
-        self.delete_label_button = QPushButton("刪除標注")
+        self.delete_label_button = QPushButton("刪除標注(D)")
         self.delete_label_button.clicked.connect(self.delete_label)
         self.delete_label_button.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Expanding)
 
         # 上、下一張照片
         # image_button_layout = QHBoxLayout()
-        self.next_image_button = QPushButton("下一張")
+        self.next_image_button = QPushButton("下一張(N)")
         self.next_image_button.clicked.connect(self.next_image)
         self.next_image_button.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Expanding)
-        self.previous_image_button = QPushButton("上一張")
+        self.previous_image_button = QPushButton("上一張(P)")
         self.previous_image_button.clicked.connect(self.previous_image)
         self.previous_image_button.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Expanding)
         # image_button_layout.addWidget(self.previous_image_button)
@@ -114,12 +139,14 @@ class ImageViewerApp(QWidget):
         offset_button_layout.addWidget(self.delete_label_button)
 
         # 將 image_list 和 image_label 加入到 top_layout 中
-        control_button_layout.addWidget(self.open_folder_btn)
-        control_button_layout.addWidget(self.restore_button)
-        control_button_layout.addWidget(self.previous_image_button)
-        control_button_layout.addWidget(self.next_image_button)
-        control_button_layout.addWidget(self.save_file_btn)
+        control_button_layout.addWidget(self.open_folder_btn, 2)
+        control_button_layout.addWidget(self.restore_button, 2)
+        control_button_layout.addWidget(self.previous_image_button, 2)
+        control_button_layout.addWidget(self.next_image_button, 2)
+        control_button_layout.addWidget(self.save_file_btn, 2)
         control_button_layout.addLayout(self.offset_layout)
+        control_button_layout.addWidget(self.dynamic_copy)
+        control_button_layout.addWidget(self.copy_label, 1)
         
         second_layout.addLayout(control_button_layout, 1)
         second_layout.addWidget(self.image_qtlist, 1) # 0: image_qtlist 不可伸縮
@@ -149,9 +176,17 @@ class ImageViewerApp(QWidget):
         self.label_file_name = ""
         self.calib = None
 
-        # # 自動調整的 Spacer，確保空間平衡
-        # spacer = QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
-        # main_layout.addSpacerItem(spacer)
+        # 新增快捷鍵
+        QShortcut(QKeySequence("S"), self, self.save_label)
+        QShortcut(QKeySequence("R"), self, self.restore_label)
+        QShortcut(QKeySequence("O"), self, self.open_folder)
+        QShortcut(QKeySequence("N"), self, self.next_image)
+        QShortcut(QKeySequence("P"), self, self.previous_image)
+        QShortcut(QKeySequence("A"), self, self.add_label)
+        QShortcut(QKeySequence("D"), self, self.delete_label)
+        # QShortcut(QKeySequence("Up"), self, self.increase_value)
+        # QShortcut(QKeySequence("Down"), self, self.decrease_value)
+
     
         
     # 窗口大小改變事件
@@ -169,6 +204,7 @@ class ImageViewerApp(QWidget):
         
         # 表格寬度: 拉長到跟畫面寬度一樣
         self.label_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.copy_label.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
 
         # 自行處理佈局調整邏輯
         print(f"Window resized to: {self.window_width}x{self.window_height}")
@@ -250,21 +286,26 @@ class ImageViewerApp(QWidget):
         self.label_list = self.get_label_table_from_qt()
         self.display_image()
 
+    # 新增標註(從現有的表格複製過去)
     def add_label(self):
 
         self.label_list = self.get_label_table_from_qt()
-        temp_object = self.label_list[self.label_table.currentRow()].copy()
+        # temp_object = self.label_list[self.label_table.currentRow()].copy()
+        temp_list = list()
+        for i in range(8):
+            temp_list.append(self.copy_label.item(0, i).text())
         
-        self.label_list.append(temp_object.copy())
+        self.label_list.append(temp_list.copy())
         self.refresh_qt_table()
         self.display_image()
         
-    
+    # 刪除標註
     def delete_label(self):
         self.label_list = self.get_label_table_from_qt()
-        self.label_list.pop(self.label_table.currentRow())
-        self.refresh_qt_table()
-        self.display_image()
+        if len(self.label_list) > 0:
+            self.label_list.pop(self.label_table.currentRow())
+            self.refresh_qt_table()
+            self.display_image()
         
     def set_current_index(self, item):
         for i in range(len(self.image_list)):
@@ -276,32 +317,35 @@ class ImageViewerApp(QWidget):
         self.select_image(self.image_qtlist.currentItem())
         
 
-
     def next_image(self):
-        if self.current_img_index == len(self.image_list) - 1:
-            pass # do nothing
-        else:
-            self.current_img_index += 1
-            self.image_qtlist.setCurrentRow(self.current_img_index)
-            self.select_image(self.image_qtlist.currentItem())
+        if self.image_list != None:
+            if self.current_img_index == len(self.image_list) - 1:
+                pass # do nothing
+            else:
+                self.current_img_index += 1
+                self.image_qtlist.setCurrentRow(self.current_img_index)
+                self.select_image(self.image_qtlist.currentItem())
     
     def previous_image(self):
-        if self.current_img_index == 0:
-            pass # do nothing
-        else:
-            self.current_img_index -= 1
-            self.image_qtlist.setCurrentRow(self.current_img_index)
-            self.select_image(self.image_qtlist.currentItem())
+        if self.image_list != None:
+            if self.current_img_index == 0:
+                pass # do nothing
+            else:
+                self.current_img_index -= 1
+                self.image_qtlist.setCurrentRow(self.current_img_index)
+                self.select_image(self.image_qtlist.currentItem())
     
     # 把顯示的表格儲存到self.label_table
     def get_label_table_from_qt(self):
         label_table = list()
-        for i in range(self.label_table.rowCount()):
-            temp = list()
-            for j in range(self.label_table.columnCount()):
-                temp.append(str(self.label_table.item(i, j).text()))
-            label_table.append(temp.copy())
-        return label_table
+
+        if self.label_table != None:
+            for i in range(self.label_table.rowCount()):
+                temp = list()
+                for j in range(self.label_table.columnCount()):
+                    temp.append(str(self.label_table.item(i, j).text()))
+                label_table.append(temp.copy())
+            return label_table
     
     # 把self.label_table寫回顯示表格
     def refresh_qt_table(self):
@@ -361,18 +405,27 @@ class ImageViewerApp(QWidget):
         self.refresh_qt_table()
 
 
-        _, self.calilb, self.denorm = load_calib(calib_path, denorm_path)
+        _, self.calib, self.denorm = load_calib(calib_path, denorm_path)
 
         self.display_image()
         
     # 讀取原始圖片後，劃上標記
     def display_image(self):
         image = cv2.imread(self.current_image_path)
-        image = draw_3d_box_on_image(image, self.label_list, self.calilb, self.denorm, index=self.label_table.currentRow()) # return a opencv image
+        image = draw_3d_box_on_image(image, self.label_list, self.calib, self.denorm, index=self.label_table.currentRow()) # return a opencv image
 
         height, width, channel = image.shape
         bytesPerline = channel * width
         image = QImage(image, width, height, bytesPerline, QImage.Format_RGB888)
+        
+        # 把點到的標註儲存到剪貼簿
+        if self.dynamic_copy.isChecked():
+            row = self.label_table.currentRow()
+            if row != -1: # 表格沒東西
+                for i in range(8):
+                    currentItem = QTableWidgetItem(str(self.label_list[row][i]))
+                    self.copy_label.setItem(0, i, currentItem)
+
 
         # 使用QPixmap顯示圖片
         pixmap = QPixmap(image)
