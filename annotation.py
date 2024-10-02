@@ -65,6 +65,7 @@ class ImageViewerApp(QWidget):
         self.change_copy_caption = QLabel("按一下會將目前選定的標註複製到剪貼簿")
         self.change_copy_button.setText("修改剪貼簿，新增標註會新增這裡的值(C)")
         self.change_copy_button.clicked.connect(self.change_copy)
+        self.change_copy_button.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Expanding)
         # 有時候整張圖都沒有標註框，可以把別張圖的標註框存在這，複製過去
         self.copy_label = QTableWidget()
         self.copy_label.setColumnCount(8)
@@ -147,7 +148,7 @@ class ImageViewerApp(QWidget):
         control_button_layout.addWidget(self.save_file_btn, 2)
         control_button_layout.addLayout(self.offset_layout)
         control_button_layout.addWidget(self.change_copy_caption)
-        control_button_layout.addWidget(self.change_copy_button)
+        control_button_layout.addWidget(self.change_copy_button, 2)
         control_button_layout.addWidget(self.copy_label, 1)
         
         second_layout.addLayout(control_button_layout, 1)
