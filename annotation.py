@@ -16,6 +16,9 @@ class ImageViewerApp(QWidget):
         # 設定窗口標題
         self.setWindowTitle("Image Viewer with PyQt5")
         self.setGeometry(100, 100, 800, 600)
+        # 鼠標滾輪事件，捕捉滾動
+        self.setMouseTracking(True)
+
 
         self.window_width = None
         self.windwo_height = None
@@ -80,6 +83,8 @@ class ImageViewerApp(QWidget):
         self.decrease_btn = QPushButton("-")
         self.decrease_btn.clicked.connect(self.decrease_value)
         self.decrease_btn.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Expanding)
+
+
 
         # 新增、刪除標注
         self.add_label_button = QPushButton("新增標注")
@@ -167,6 +172,24 @@ class ImageViewerApp(QWidget):
 
         # 自行處理佈局調整邏輯
         print(f"Window resized to: {self.window_width}x{self.window_height}")
+    
+    def wheelEvent(self, event):
+        # 目前滑鼠位置
+        cursor_pos = event.position().toPoint()
+        # 圖片位置        
+        image_label_rect = self.image_label.geometry()
+
+        # 滑鼠在圖片內才呼叫
+        if image_label_rect.contains(cursor_pos):
+            # 滾動量（delta）
+            delta = event.angleDelta().y()
+
+            # 向上滾
+            if delta > 0:
+                self.increase_value()
+            # 向下滾
+            elif delta < 0:
+                self.decrease_value()
         
 
 
