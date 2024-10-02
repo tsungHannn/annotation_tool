@@ -61,9 +61,10 @@ class ImageViewerApp(QWidget):
         self.input_offset.textChanged.connect(self.change_offset)
 
 
-        self.dynamic_copy = QCheckBox()
-        self.dynamic_copy.setText("剪貼簿，新增標註會新增這裡的值\n(勾選則點擊表格會複製到這裡，不勾選這裡的值就不會改變)")
-        self.dynamic_copy.setChecked(True)
+        self.change_copy_button = QPushButton()
+        self.change_copy_caption = QLabel("按一下會將目前選定的標註複製到剪貼簿")
+        self.change_copy_button.setText("修改剪貼簿，新增標註會新增這裡的值(C)")
+        self.change_copy_button.clicked.connect(self.change_copy)
         # 有時候整張圖都沒有標註框，可以把別張圖的標註框存在這，複製過去
         self.copy_label = QTableWidget()
         self.copy_label.setColumnCount(8)
@@ -145,7 +146,8 @@ class ImageViewerApp(QWidget):
         control_button_layout.addWidget(self.next_image_button, 2)
         control_button_layout.addWidget(self.save_file_btn, 2)
         control_button_layout.addLayout(self.offset_layout)
-        control_button_layout.addWidget(self.dynamic_copy)
+        control_button_layout.addWidget(self.change_copy_caption)
+        control_button_layout.addWidget(self.change_copy_button)
         control_button_layout.addWidget(self.copy_label, 1)
         
         second_layout.addLayout(control_button_layout, 1)
@@ -186,6 +188,7 @@ class ImageViewerApp(QWidget):
         QShortcut(QKeySequence("D"), self, self.delete_label)
         QShortcut(QKeySequence("+"), self, self.increase_value)
         QShortcut(QKeySequence("-"), self, self.decrease_value)
+        QShortcut(QKeySequence("C"), self, self.change_copy)
         # QShortcut(QKeySequence("Up"), self, self.increase_value)
         # QShortcut(QKeySequence("Down"), self, self.decrease_value)
 
@@ -336,6 +339,14 @@ class ImageViewerApp(QWidget):
                 self.current_img_index -= 1
                 self.image_qtlist.setCurrentRow(self.current_img_index)
                 self.select_image(self.image_qtlist.currentItem())
+
+    def change_copy(self):
+        # 把點到的標註儲存到剪貼簿
+        row = self.label_table.currentRow()
+        if row != -1: # 表格沒東西
+            for i in range(8):
+                currentItem = QTableWidgetItem(str(self.label_list[row][i]))
+                self.copy_label.setItem(0, i, currentItem)
     
     # 把顯示的表格儲存到self.label_table
     def get_label_table_from_qt(self):
@@ -422,15 +433,6 @@ class ImageViewerApp(QWidget):
         height, width, channel = image.shape
         bytesPerline = channel * width
         image = QImage(image, width, height, bytesPerline, QImage.Format_RGB888)
-        
-        # 把點到的標註儲存到剪貼簿
-        if self.dynamic_copy.isChecked():
-            row = self.label_table.currentRow()
-            if row != -1: # 表格沒東西
-                for i in range(8):
-                    currentItem = QTableWidgetItem(str(self.label_list[row][i]))
-                    self.copy_label.setItem(0, i, currentItem)
-
 
         # 使用QPixmap顯示圖片
         pixmap = QPixmap(image)
@@ -451,6 +453,7 @@ class ImageViewerApp(QWidget):
     def save_label(self):
         self.label_list = self.get_label_table_from_qt()
         write_kitti_in_txt(self.label_list, self.label_file_name)
+        print("SAFE:", self.label_file_name)
         # if self.current_image_path:
         #     save_path, _ = QFileDialog.getSaveFileName(self, "保存圖像", "", "Images (*.png *.jpg *.bmp)")
         #     if save_path:
