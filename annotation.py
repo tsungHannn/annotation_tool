@@ -39,6 +39,7 @@ class ImageViewerApp(QWidget):
         self.image_qtlist = QListWidget()
         self.image_qtlist.itemClicked.connect(self.set_current_index)
         self.image_qtlist.setFixedWidth(200)
+        # self.image_qtlist.currentRowChanged.connect(self.set_current_index)
 
         self.data_root_label = QLabel("Data Root:")
 
@@ -242,10 +243,23 @@ class ImageViewerApp(QWidget):
             self.data_root = folder
             self.annotation_folder = os.path.join(folder, "label")
             self.image_folder = os.path.join(folder, "image")
+            # 看看有沒有紀錄
+            if os.path.exists(os.path.join(folder, "record.txt")):
+                with open(os.path.join(folder, "record.txt"), "r") as recordFile:
+                    from_record = recordFile.readline()
+                    if from_record == "":
+                        self.current_img_index = 0
+                    else:
+                        self.current_img_index = int(from_record)
+
             self.load_images_from_folder()
             self.data_root_label.setText(self.image_folder)
 
-            self.now_image_index = 0
+            
+                
+                
+
+
 
     # 讀取資料夾裡面的圖片後顯示list
     def load_images_from_folder(self):
@@ -322,7 +336,7 @@ class ImageViewerApp(QWidget):
         self.image_qtlist.setCurrentRow(self.current_img_index)
         self.select_image(self.image_qtlist.currentItem())
         
-
+    # 下一張
     def next_image(self):
         if self.image_list != None:
             if self.current_img_index == len(self.image_list) - 1:
@@ -333,6 +347,7 @@ class ImageViewerApp(QWidget):
                 self.select_image(self.image_qtlist.currentItem())
                 self.label_table.setCurrentCell(-1, -1)
     
+    # 上一張
     def previous_image(self):
         if self.image_list != None:
             if self.current_img_index == 0:
@@ -422,6 +437,10 @@ class ImageViewerApp(QWidget):
 
 
         _, self.calib, self.denorm = load_calib(calib_path, denorm_path)
+
+        # 儲存目前的進度
+        with open(os.path.join(self.data_root, "record.txt"), "w") as recordFile:
+            recordFile.write(str(self.current_img_index))
 
         self.display_image()
         
