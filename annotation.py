@@ -331,6 +331,7 @@ class ImageViewerApp(QWidget):
                 self.current_img_index += 1
                 self.image_qtlist.setCurrentRow(self.current_img_index)
                 self.select_image(self.image_qtlist.currentItem())
+                self.label_table.setCurrentCell(-1, -1)
     
     def previous_image(self):
         if self.image_list != None:
@@ -340,6 +341,7 @@ class ImageViewerApp(QWidget):
                 self.current_img_index -= 1
                 self.image_qtlist.setCurrentRow(self.current_img_index)
                 self.select_image(self.image_qtlist.currentItem())
+                self.label_table.setCurrentCell(-1, -1)
 
     def change_copy(self):
         # 把點到的標註儲存到剪貼簿
@@ -433,7 +435,7 @@ class ImageViewerApp(QWidget):
 
         height, width, channel = image.shape
         bytesPerline = channel * width
-        image = QImage(image, width, height, bytesPerline, QImage.Format_RGB888)
+        image = QImage(image, width, height, bytesPerline, QImage.Format_RGB888).rgbSwapped()
 
         # 使用QPixmap顯示圖片
         pixmap = QPixmap(image)
